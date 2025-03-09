@@ -1,40 +1,38 @@
+import numpy as np
 import multiprocessing
 
-def multiplicar_elemento(i, j, matriz_a, matriz_b, resultado):
+def multiplicar_elemento(i, j, A, B, result):
     soma = 0
-    for k in range(3):
-        soma += matriz_a[i][k] * matriz_b[k][j]
-    resultado[i][j] = soma
+    for k in range(len(A)):
+        soma += A[i][k] * B[k][j]
+    result[i][j] = soma
 
-def multiplicar_matrizes(matriz_a, matriz_b):
-    resultado = multiprocessing.Manager().list([[0 for _ in range(3)] for _ in range(3)])
+def multiplicar_matrizes_paralelo(A, B):
+    result = multiprocessing.Manager().list([[0 for _ in range(len(A))] for _ in range(len(A))])
+
     processos = []
 
-    for i in range(3):
-        for j in range(3):
-            p = multiprocessing.Process(target=multiplicar_elemento, args=(i, j, matriz_a, matriz_b, resultado))
+    for i in range(len(A)):
+        for j in range(len(A[0])):
+            p = multiprocessing.Process(target=multiplicar_elemento, args=(i, j, A, B, result))
             processos.append(p)
             p.start()
 
     for p in processos:
         p.join()
 
-    return [list(linha) for linha in resultado]
+    return np.array(result)
 
-if __name__=='__main__':
-    matriz_a = [
-        [1, 2, 3],
-        [4, 5, 6],
-        [7, 8, 9]
-    ]
+if __name__ == '__main__':
+    A = np.array([[1, 2, 3],
+                [4, 5, 6],
+                [7, 8, 9]])
 
-    matriz_b = [
-        [9, 8, 7],
-        [6, 5, 4],
-        [3, 2, 1]
-    ]
+    B = np.array([[9, 8, 7],
+                [6, 5, 4],
+                [3, 2, 1]])
 
-    resultado = multiplicar_matrizes(matriz_a, matriz_b)
-    print("Matriz Resultado:")
-    for linha in resultado:
-        print(linha)
+    resultado = multiplicar_matrizes_paralelo(A, B)
+
+    print("Resultado da multiplicação das matrizes:")
+    print(resultado)
